@@ -14,11 +14,32 @@ const History = ({ inputValue }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
 
+  async function shortenUrl(longUrl, apiKey) {
+  const res = await fetch(
+    `https://api.shrtco.de/v2/shorten?url=${longUrl}`,
+    {
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': apiKey,
+      },
+    }
+  );
+
+  if (!res.ok) {
+    const {status, statusText} = res;
+    throw new Error(`Error: ${status} ${statusText}`);
+  }
+
+  const data = await res.json();
+
+  return data.result.short_link;
+}
+
   const fetchData = async () => {
     try {
       setLoading(true);
-      const res = await axios(`https://api.shrtco.de/v2/shorten?url=${inputValue}`);
-      setShortenLink(res.data.result.full_short_link);
+      const shortUrl = await shortenUrl(inputValue, process.env.NEXT_PUBLIC_API_KEY);
+      setShortenLink(shortUrl);
     } catch (err) {
       setError(err);
     } finally {
